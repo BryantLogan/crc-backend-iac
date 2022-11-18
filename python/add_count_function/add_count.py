@@ -1,0 +1,31 @@
+import json
+import boto3
+
+def add_count_handler(event, context):
+    client = boto3.client('dynamodb')
+    response = client.update_item(
+        TableName='cloud-resume-challenge-db',
+        Key={
+            'pk':{
+                'S': 'Visits'}
+        },
+        UpdateExpression= "SET Hits = Hits + :incr",
+        ExpressionAttributeValues ={
+            ':incr': {'N': '1'}
+            },
+        ReturnValues="UPDATED_NEW",
+    )
+    responseMsg = {
+    'statusCode': 200,
+    'headers': {
+        # "Content-Type": "application/json",
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': '*',
+        'Access-Control-Allow-Headers': '*',
+    },
+    "body": json.dumps({
+        "message": "success",
+        "count": response['Attributes']['Hits']['N']
+    }),
+}
+    return responseMsg
