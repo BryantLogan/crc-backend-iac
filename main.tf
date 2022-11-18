@@ -1,7 +1,7 @@
 # --- Creates DynamoDB Table --- #
 resource "aws_dynamodb_table" "crc_dynamodb_table" {
   name           = "cloud-resume-challenge-db"
-  billing_mode   = "PROVISIONED"
+  billing_mode   = "PAY_PER_REQUEST"
   read_capacity  = 5
   write_capacity = 5
   hash_key       = "pk"
@@ -24,7 +24,7 @@ resource "aws_dynamodb_table_item" "crc_visit_count_item" {
   item = <<ITEM
 {
   "pk": {"S": "Visits"},
-  "Hits": {"N": "0"}
+  "Hits": {"N": "157"}
 }
 ITEM
 }
