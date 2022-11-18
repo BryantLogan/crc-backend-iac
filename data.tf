@@ -1,3 +1,4 @@
+# --- Packages python files into .zip to be used by Lambda functions --- #
 data "archive_file" "add_count_zip" {
   type        = "zip"
   source_dir  = "..\\backend\\python\\add_count_function"
