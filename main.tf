@@ -1,5 +1,4 @@
-# --- Creates DynamoDB Table ---
-
+# --- Creates DynamoDB Table --- #
 resource "aws_dynamodb_table" "crc_dynamodb_table" {
   name           = "cloud-resume-challenge-db"
   billing_mode   = "PROVISIONED"
@@ -31,14 +30,16 @@ ITEM
 }
 
 
-# --- Creates REST API Gateway with PUT endpoint ---
-
+# --- Creates REST API Gateway resource --- #
 resource "aws_api_gateway_rest_api" "crc_api" {
   name        = "CloudResumeAPI"
   description = "Cloud Resume Challenge API Gateway"
 }
 
+
 # --- OPTIONS resources --- #
+
+# --- This module *may* be able to configure OPTIONS/CORS resource automatically --- #
 # module "cors" {
 #   source = "squidfunk/api-gateway-enable-cors/aws"
 #   version = "0.3.3"
@@ -46,6 +47,7 @@ resource "aws_api_gateway_rest_api" "crc_api" {
 #   api_id          = aws_api_gateway_rest_api.crc_api.id
 #   api_resource_id = aws_api_gateway_resource.get_resource.id
 # }
+# -----------------------------------------------------------------------------------#
 
 resource "aws_api_gateway_method" "crc_options_method" {
   rest_api_id   = aws_api_gateway_rest_api.crc_api.id
@@ -97,6 +99,7 @@ resource "aws_api_gateway_integration_response" "options_integration_response" {
     depends_on = [aws_api_gateway_method_response.response_200]
 }
 
+
 # --- GET resources --- #
 resource "aws_api_gateway_resource" "get_resource" {
   rest_api_id = aws_api_gateway_rest_api.crc_api.id
@@ -147,6 +150,7 @@ resource "aws_api_gateway_method_settings" "get_count" {
 
   settings {}
 }
+
 
 # --- Configuring and provisioning lambda function --- #
 resource "aws_iam_role" "crc_lambda_iam_role" {
