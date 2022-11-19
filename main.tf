@@ -2,8 +2,6 @@
 resource "aws_dynamodb_table" "crc_dynamodb_table" {
   name           = "cloud-resume-challenge-db"
   billing_mode   = "PAY_PER_REQUEST"
-  read_capacity  = 5
-  write_capacity = 5
   hash_key       = "pk"
 
   attribute {
@@ -24,7 +22,7 @@ resource "aws_dynamodb_table_item" "crc_visit_count_item" {
   item = <<ITEM
 {
   "pk": {"S": "Visits"},
-  "Hits": {"N": "157"}
+  "Hits": {"N": "191"}
 }
 ITEM
 }
@@ -45,13 +43,13 @@ resource "aws_api_gateway_rest_api" "crc_api" {
 #   version = "0.3.3"
 
 #   api_id          = aws_api_gateway_rest_api.crc_api.id
-#   api_resource_id = aws_api_gateway_resource.get_resource.id
+#   api_resource_id = aws_api_gateway_resource.post_resource.id
 # }
 # -----------------------------------------------------------------------------------#
 
 resource "aws_api_gateway_method" "crc_options_method" {
   rest_api_id   = aws_api_gateway_rest_api.crc_api.id
-  resource_id   = aws_api_gateway_resource.get_resource.id
+  resource_id   = aws_api_gateway_resource.post_resource.id
   http_method   = "OPTIONS"
   authorization = "NONE"
   api_key_required = false
@@ -59,7 +57,7 @@ resource "aws_api_gateway_method" "crc_options_method" {
 
 resource "aws_api_gateway_method_response" "response_200" {
   rest_api_id = aws_api_gateway_rest_api.crc_api.id
-  resource_id = aws_api_gateway_resource.get_resource.id
+  resource_id = aws_api_gateway_resource.post_resource.id
   http_method = aws_api_gateway_method.crc_options_method.http_method
   status_code   = "200"
   response_models = {
@@ -75,7 +73,7 @@ resource "aws_api_gateway_method_response" "response_200" {
 
 resource "aws_api_gateway_integration" "options_integration" {
   rest_api_id = aws_api_gateway_rest_api.crc_api.id
-  resource_id = aws_api_gateway_resource.get_resource.id
+  resource_id = aws_api_gateway_resource.post_resource.id
   http_method = aws_api_gateway_method.crc_options_method.http_method
   type        = "MOCK"
   passthrough_behavior = "WHEN_NO_MATCH"
@@ -88,7 +86,7 @@ resource "aws_api_gateway_integration" "options_integration" {
 
 resource "aws_api_gateway_integration_response" "options_integration_response" {
     rest_api_id   = "${aws_api_gateway_rest_api.crc_api.id}"
-    resource_id   = "${aws_api_gateway_resource.get_resource.id}"
+    resource_id   = "${aws_api_gateway_resource.post_resource.id}"
     http_method   = "${aws_api_gateway_method.crc_options_method.http_method}"
     status_code   = "${aws_api_gateway_method_response.response_200.status_code}"
     response_parameters = {
@@ -100,53 +98,53 @@ resource "aws_api_gateway_integration_response" "options_integration_response" {
 }
 
 
-# --- GET resources --- #
-resource "aws_api_gateway_resource" "get_resource" {
+# --- POST resources --- #
+resource "aws_api_gateway_resource" "post_resource" {
   rest_api_id = aws_api_gateway_rest_api.crc_api.id
   parent_id   = aws_api_gateway_rest_api.crc_api.root_resource_id
   path_part   = "counter"
 }
 
-resource "aws_api_gateway_method" "crc_get_method" {
+resource "aws_api_gateway_method" "crc_post_method" {
   rest_api_id   = aws_api_gateway_rest_api.crc_api.id
-  resource_id   = aws_api_gateway_resource.get_resource.id
+  resource_id   = aws_api_gateway_resource.post_resource.id
   http_method   = "POST"
   authorization = "NONE"
 }
 
-resource "aws_api_gateway_method_response" "get_method_response_200" {
+resource "aws_api_gateway_method_response" "post_method_response_200" {
     rest_api_id   = "${aws_api_gateway_rest_api.crc_api.id}"
-    resource_id   = "${aws_api_gateway_resource.get_resource.id}"
-    http_method   = "${aws_api_gateway_method.crc_get_method.http_method}"
+    resource_id   = "${aws_api_gateway_resource.post_resource.id}"
+    http_method   = "${aws_api_gateway_method.crc_post_method.http_method}"
     status_code   = "200"
     response_parameters = {
         "method.response.header.Access-Control-Allow-Origin" = true
     }
-    depends_on = [aws_api_gateway_method.crc_get_method]
+    depends_on = [aws_api_gateway_method.crc_post_method]
 }
 
-resource "aws_api_gateway_integration" "get_count_integration" {
+resource "aws_api_gateway_integration" "post_count_integration" {
   rest_api_id             = aws_api_gateway_rest_api.crc_api.id
-  resource_id             = aws_api_gateway_resource.get_resource.id
-  http_method             = aws_api_gateway_method.crc_get_method.http_method
+  resource_id             = aws_api_gateway_resource.post_resource.id
+  http_method             = aws_api_gateway_method.crc_post_method.http_method
   type                    = "AWS_PROXY"
   integration_http_method = "POST"
   uri                     = "${aws_lambda_function.add_count_lambda.invoke_arn}"
 
-  depends_on = [aws_api_gateway_method.crc_get_method, aws_lambda_function.add_count_lambda]
+  depends_on = [aws_api_gateway_method.crc_post_method, aws_lambda_function.add_count_lambda]
 }
 
-resource "aws_api_gateway_deployment" "crc_api_deployment_get" {
+resource "aws_api_gateway_deployment" "crc_api_deployment_post" {
   rest_api_id = aws_api_gateway_rest_api.crc_api.id
   stage_name  = "prod"
 
-  depends_on = [aws_api_gateway_integration.get_count_integration]
+  depends_on = [aws_api_gateway_integration.post_count_integration]
 }
 
-resource "aws_api_gateway_method_settings" "get_count" {
+resource "aws_api_gateway_method_settings" "post_count" {
   rest_api_id = aws_api_gateway_rest_api.crc_api.id
-  stage_name  = aws_api_gateway_deployment.crc_api_deployment_get.stage_name
-  method_path = "${aws_api_gateway_resource.get_resource.path_part}/${aws_api_gateway_method.crc_get_method.http_method}"
+  stage_name  = aws_api_gateway_deployment.crc_api_deployment_post.stage_name
+  method_path = "${aws_api_gateway_resource.post_resource.path_part}/${aws_api_gateway_method.crc_post_method.http_method}"
 
   settings {}
 }
@@ -191,5 +189,5 @@ resource "aws_lambda_permission" "add_count_permission" {
   action        = "lambda:InvokeFunction"
   function_name = "${aws_lambda_function.add_count_lambda.arn}"
   principal     = "apigateway.amazonaws.com"
-  source_arn    = "${aws_api_gateway_rest_api.crc_api.execution_arn}/*/${aws_api_gateway_method.crc_get_method.http_method}/counter"
+  source_arn    = "${aws_api_gateway_rest_api.crc_api.execution_arn}/*/${aws_api_gateway_method.crc_post_method.http_method}/counter"
 }
