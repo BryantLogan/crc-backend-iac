@@ -1,8 +1,8 @@
 # --- Creates DynamoDB Table --- #
 resource "aws_dynamodb_table" "crc_dynamodb_table" {
-  name           = "cloud-resume-challenge-db"
-  billing_mode   = "PAY_PER_REQUEST"
-  hash_key       = "pk"
+  name         = "cloud-resume-challenge-db"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "pk"
 
   attribute {
     name = "pk"
@@ -25,6 +25,10 @@ resource "aws_dynamodb_table_item" "crc_visit_count_item" {
   "Hits": {"N": "191"}
 }
 ITEM
+
+  lifecycle {
+    ignore_changes = [item]
+  }
 }
 
 
@@ -48,10 +52,10 @@ resource "aws_api_gateway_rest_api" "crc_api" {
 # -----------------------------------------------------------------------------------#
 
 resource "aws_api_gateway_method" "crc_options_method" {
-  rest_api_id   = aws_api_gateway_rest_api.crc_api.id
-  resource_id   = aws_api_gateway_resource.post_resource.id
-  http_method   = "OPTIONS"
-  authorization = "NONE"
+  rest_api_id      = aws_api_gateway_rest_api.crc_api.id
+  resource_id      = aws_api_gateway_resource.post_resource.id
+  http_method      = "OPTIONS"
+  authorization    = "NONE"
   api_key_required = false
 }
 
@@ -59,23 +63,23 @@ resource "aws_api_gateway_method_response" "response_200" {
   rest_api_id = aws_api_gateway_rest_api.crc_api.id
   resource_id = aws_api_gateway_resource.post_resource.id
   http_method = aws_api_gateway_method.crc_options_method.http_method
-  status_code   = "200"
+  status_code = "200"
   response_models = {
-      "application/json" = "Empty"
+    "application/json" = "Empty"
   }
   response_parameters = {
-      "method.response.header.Access-Control-Allow-Headers" = true,
-      "method.response.header.Access-Control-Allow-Methods" = true,
-      "method.response.header.Access-Control-Allow-Origin" = true
+    "method.response.header.Access-Control-Allow-Headers" = true,
+    "method.response.header.Access-Control-Allow-Methods" = true,
+    "method.response.header.Access-Control-Allow-Origin"  = true
   }
   depends_on = [aws_api_gateway_method.crc_options_method]
 }
 
 resource "aws_api_gateway_integration" "options_integration" {
-  rest_api_id = aws_api_gateway_rest_api.crc_api.id
-  resource_id = aws_api_gateway_resource.post_resource.id
-  http_method = aws_api_gateway_method.crc_options_method.http_method
-  type        = "MOCK"
+  rest_api_id          = aws_api_gateway_rest_api.crc_api.id
+  resource_id          = aws_api_gateway_resource.post_resource.id
+  http_method          = aws_api_gateway_method.crc_options_method.http_method
+  type                 = "MOCK"
   passthrough_behavior = "WHEN_NO_MATCH"
   request_templates = {
     "application/json" = "{ 'statusCode': 200 }"
@@ -85,16 +89,16 @@ resource "aws_api_gateway_integration" "options_integration" {
 }
 
 resource "aws_api_gateway_integration_response" "options_integration_response" {
-    rest_api_id   = "${aws_api_gateway_rest_api.crc_api.id}"
-    resource_id   = "${aws_api_gateway_resource.post_resource.id}"
-    http_method   = "${aws_api_gateway_method.crc_options_method.http_method}"
-    status_code   = "${aws_api_gateway_method_response.response_200.status_code}"
-    response_parameters = {
-        "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-        "method.response.header.Access-Control-Allow-Methods" = "'GET,OPTIONS,POST,PUT'",
-        "method.response.header.Access-Control-Allow-Origin" = "'*'"
-    }
-    depends_on = [aws_api_gateway_method_response.response_200]
+  rest_api_id = aws_api_gateway_rest_api.crc_api.id
+  resource_id = aws_api_gateway_resource.post_resource.id
+  http_method = aws_api_gateway_method.crc_options_method.http_method
+  status_code = aws_api_gateway_method_response.response_200.status_code
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+    "method.response.header.Access-Control-Allow-Methods" = "'GET,OPTIONS,POST,PUT'",
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+  }
+  depends_on = [aws_api_gateway_method_response.response_200]
 }
 
 
@@ -113,14 +117,14 @@ resource "aws_api_gateway_method" "crc_post_method" {
 }
 
 resource "aws_api_gateway_method_response" "post_method_response_200" {
-    rest_api_id   = "${aws_api_gateway_rest_api.crc_api.id}"
-    resource_id   = "${aws_api_gateway_resource.post_resource.id}"
-    http_method   = "${aws_api_gateway_method.crc_post_method.http_method}"
-    status_code   = "200"
-    response_parameters = {
-        "method.response.header.Access-Control-Allow-Origin" = true
-    }
-    depends_on = [aws_api_gateway_method.crc_post_method]
+  rest_api_id = aws_api_gateway_rest_api.crc_api.id
+  resource_id = aws_api_gateway_resource.post_resource.id
+  http_method = aws_api_gateway_method.crc_post_method.http_method
+  status_code = "200"
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin" = true
+  }
+  depends_on = [aws_api_gateway_method.crc_post_method]
 }
 
 resource "aws_api_gateway_integration" "post_count_integration" {
@@ -129,7 +133,7 @@ resource "aws_api_gateway_integration" "post_count_integration" {
   http_method             = aws_api_gateway_method.crc_post_method.http_method
   type                    = "AWS_PROXY"
   integration_http_method = "POST"
-  uri                     = "${aws_lambda_function.add_count_lambda.invoke_arn}"
+  uri                     = aws_lambda_function.add_count_lambda.invoke_arn
 
   depends_on = [aws_api_gateway_method.crc_post_method, aws_lambda_function.add_count_lambda]
 }
@@ -187,7 +191,7 @@ resource "aws_lambda_function" "add_count_lambda" {
 resource "aws_lambda_permission" "add_count_permission" {
   statement_id  = "AllowAPIGatewayInvoke"
   action        = "lambda:InvokeFunction"
-  function_name = "${aws_lambda_function.add_count_lambda.arn}"
+  function_name = aws_lambda_function.add_count_lambda.arn
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_api_gateway_rest_api.crc_api.execution_arn}/*/${aws_api_gateway_method.crc_post_method.http_method}/counter"
 }
