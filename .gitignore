@@ -18,3 +18,16 @@ override.tf.json
 
 .terraformrc
 terraform.rc
+
+node_modules
+*.log
+*.aes
+cypress/screenshots
+cypress/videos
+cypress/logs
+cypress/fixtures/profile.json
+cypress/fixtures/users.json
+.history
+.vscode
+env
+.DS_Store
