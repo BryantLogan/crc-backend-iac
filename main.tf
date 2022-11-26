@@ -155,7 +155,7 @@ resource "aws_api_gateway_method_settings" "post_count" {
 
 
 # --- Configuring and provisioning lambda function --- #
-resource "aws_iam_role" "crc_lambda_iam_role" {
+resource "aws_iam_role" "crc_lambda_iam_role_iac" {
   name               = "crc-lambda-iam-role"
   assume_role_policy = <<EOF
 {
