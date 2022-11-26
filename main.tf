@@ -1,6 +1,6 @@
 # --- Creates DynamoDB Table --- #
 resource "aws_dynamodb_table" "crc_dynamodb_table" {
-  name         = "cloud-resume-challenge-db"
+  name         = "crc-db"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "pk"
 
