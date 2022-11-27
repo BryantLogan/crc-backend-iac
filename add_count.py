@@ -18,7 +18,7 @@ def add_count_handler(event, context):
     responseMsg = {
     'statusCode': 200,
     'headers': {
-        "Content-Type": "application/json",
+        # "Content-Type": "application/json",
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "*",
         "Access-Control-Allow-Headers": "*",
