@@ -174,7 +174,7 @@ EOF
 
 resource "aws_iam_role_policy_attachment" "lambda_for_dynamo_db" {
   role       = aws_iam_role.crc_iam_role_lambda.name
-  policy_arn = "arn:aws:iam::241568881065:role/crc-lambda-iam-db-role"
+  policy_arn = "arn:aws:iam::241568881065:policy/LambdaForDynamoDB"
 }
 
 resource "aws_lambda_function" "add_count_lambda" {
