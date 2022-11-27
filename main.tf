@@ -155,8 +155,8 @@ resource "aws_api_gateway_method_settings" "post_count" {
 
 
 # --- Configuring and provisioning lambda function --- #
-resource "aws_iam_role" "crc_lambda_iam_role_iac" {
-  name               = "crc-lambda-iam-role"
+resource "aws_iam_role" "crc_iam_role_lambda" {
+  name               = "crc-lambda-iam-db-role"
   assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",
@@ -175,14 +175,14 @@ EOF
 }
 
 resource "aws_iam_role_policy_attachment" "lambda_for_dynamo_db" {
-  role       = aws_iam_role.crc_lambda_iam_role.name
+  role       = aws_iam_role.crc_iam_role_lambda.name
   policy_arn = "arn:aws:iam::241568881065:policy/LambdaForDynamoDB"
 }
 
 resource "aws_lambda_function" "add_count_lambda" {
   filename         = "add_count.zip"
   function_name    = "crc-add-count-function"
-  role             = aws_iam_role.crc_lambda_iam_role.arn
+  role             = aws_iam_role.crc_iam_role_lambda.arn
   handler          = "add_count.add_count_handler"
   source_code_hash = data.archive_file.add_count_zip.output_base64sha256
   runtime          = "python3.9"
