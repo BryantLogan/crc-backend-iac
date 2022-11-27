@@ -15,7 +15,7 @@ def add_count_handler(event, context):
             },
         ReturnValues="UPDATED_NEW",
     )
-    responseMsg = {
+    return {
     'statusCode': 200,
     'headers': {
 # "Content-Type": "application/json",
@@ -28,4 +28,3 @@ def add_count_handler(event, context):
         "count": response['Attributes']['Hits']['N']
     }),
 }
-    return responseMsg
