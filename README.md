@@ -1,2 +1,2 @@
 # Backend repository for the Cloud Resume Challenge
-![This is an image](/crc-backend-infra.png)
+![This is an image](/backend-infra.png)
