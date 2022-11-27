@@ -1,6 +1,6 @@
 # --- Creates DynamoDB Table --- #
 resource "aws_dynamodb_table" "crc_dynamodb_table" {
-  name         = "crc-db"
+  name         = "crc-db-table"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "pk"
 
@@ -181,7 +181,7 @@ resource "aws_iam_role_policy_attachment" "lambda_for_dynamo_db" {
 
 resource "aws_lambda_function" "add_count_lambda" {
   filename         = "add_count.zip"
-  function_name    = "crc-add-count-function"
+  function_name    = "crc-add-count"
   role             = aws_iam_role.crc_iam_role_lambda.arn
   handler          = "add_count.add_count_handler"
   source_code_hash = data.archive_file.add_count_zip.output_base64sha256
