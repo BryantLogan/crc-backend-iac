@@ -38,6 +38,56 @@ resource "aws_api_gateway_rest_api" "crc_api" {
   description = "Cloud Resume Challenge API Gateway"
 }
 
+# --- POST resources --- #
+resource "aws_api_gateway_resource" "post_resource" {
+  rest_api_id = aws_api_gateway_rest_api.crc_api.id
+  parent_id   = aws_api_gateway_rest_api.crc_api.root_resource_id
+  path_part   = "counter"
+}
+
+resource "aws_api_gateway_method" "crc_post_method" {
+  rest_api_id   = aws_api_gateway_rest_api.crc_api.id
+  resource_id   = aws_api_gateway_resource.post_resource.id
+  http_method   = "POST"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_method_response" "post_method_response_200" {
+  rest_api_id = aws_api_gateway_rest_api.crc_api.id
+  resource_id = aws_api_gateway_resource.post_resource.id
+  http_method = aws_api_gateway_method.crc_post_method.http_method
+  status_code = "200"
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin" = true
+  }
+  depends_on = [aws_api_gateway_method.crc_post_method]
+}
+
+resource "aws_api_gateway_integration" "post_count_integration" {
+  rest_api_id             = aws_api_gateway_rest_api.crc_api.id
+  resource_id             = aws_api_gateway_resource.post_resource.id
+  http_method             = aws_api_gateway_method.crc_post_method.http_method
+  type                    = "AWS_PROXY"
+  integration_http_method = "POST"
+  uri                     = aws_lambda_function.add_count_lambda.invoke_arn
+
+  depends_on = [aws_api_gateway_method.crc_post_method, aws_lambda_function.add_count_lambda]
+}
+
+resource "aws_api_gateway_deployment" "crc_api_deployment_post" {
+  rest_api_id = aws_api_gateway_rest_api.crc_api.id
+  stage_name  = "prod"
+
+  depends_on = [aws_api_gateway_integration.post_count_integration]
+}
+
+resource "aws_api_gateway_method_settings" "post_count" {
+  rest_api_id = aws_api_gateway_rest_api.crc_api.id
+  stage_name  = aws_api_gateway_deployment.crc_api_deployment_post.stage_name
+  method_path = "${aws_api_gateway_resource.post_resource.path_part}/${aws_api_gateway_method.crc_post_method.http_method}"
+
+  settings {}
+}
 
 # --- OPTIONS resources --- #
 
@@ -99,58 +149,6 @@ resource "aws_api_gateway_integration_response" "options_integration_response" {
     "method.response.header.Access-Control-Allow-Origin"  = "'*'"
   }
   depends_on = [aws_api_gateway_method_response.response_200]
-}
-
-
-# --- POST resources --- #
-resource "aws_api_gateway_resource" "post_resource" {
-  rest_api_id = aws_api_gateway_rest_api.crc_api.id
-  parent_id   = aws_api_gateway_rest_api.crc_api.root_resource_id
-  path_part   = "counter"
-}
-
-resource "aws_api_gateway_method" "crc_post_method" {
-  rest_api_id   = aws_api_gateway_rest_api.crc_api.id
-  resource_id   = aws_api_gateway_resource.post_resource.id
-  http_method   = "POST"
-  authorization = "NONE"
-}
-
-resource "aws_api_gateway_method_response" "post_method_response_200" {
-  rest_api_id = aws_api_gateway_rest_api.crc_api.id
-  resource_id = aws_api_gateway_resource.post_resource.id
-  http_method = aws_api_gateway_method.crc_post_method.http_method
-  status_code = "200"
-  response_parameters = {
-    "method.response.header.Access-Control-Allow-Origin" = true
-  }
-  depends_on = [aws_api_gateway_method.crc_post_method]
-}
-
-resource "aws_api_gateway_integration" "post_count_integration" {
-  rest_api_id             = aws_api_gateway_rest_api.crc_api.id
-  resource_id             = aws_api_gateway_resource.post_resource.id
-  http_method             = aws_api_gateway_method.crc_post_method.http_method
-  type                    = "AWS_PROXY"
-  integration_http_method = "POST"
-  uri                     = aws_lambda_function.add_count_lambda.invoke_arn
-
-  depends_on = [aws_api_gateway_method.crc_post_method, aws_lambda_function.add_count_lambda]
-}
-
-resource "aws_api_gateway_deployment" "crc_api_deployment_post" {
-  rest_api_id = aws_api_gateway_rest_api.crc_api.id
-  stage_name  = "prod"
-
-  depends_on = [aws_api_gateway_integration.post_count_integration]
-}
-
-resource "aws_api_gateway_method_settings" "post_count" {
-  rest_api_id = aws_api_gateway_rest_api.crc_api.id
-  stage_name  = aws_api_gateway_deployment.crc_api_deployment_post.stage_name
-  method_path = "${aws_api_gateway_resource.post_resource.path_part}/${aws_api_gateway_method.crc_post_method.http_method}"
-
-  settings {}
 }
 
 
