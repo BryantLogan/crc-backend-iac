@@ -4,7 +4,7 @@ import boto3
 def add_count_handler(event, context):
     client = boto3.client('dynamodb')
     response = client.update_item(
-        TableName='cloud-resume-challenge-db',
+        TableName='crc-db-table',
         Key={
             'pk':{
                 'S': 'Visits'}
